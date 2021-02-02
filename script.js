@@ -12,6 +12,8 @@ class DrumKit {
     this.bpm = 150;
     this.isPlaying = null;
     this.selects = document.querySelectorAll('select');
+    this.muteBtns = document.querySelectorAll('.mute');
+    this.tempoSlider = document.querySelector('.tempo-slider');
   }
   activePad() {
     this.classList.toggle('active');
@@ -58,14 +60,15 @@ class DrumKit {
   }
   updateBtn() {
     //if not null
-    if (!this.isPlaying) {
-      this.playBtn.innerText = 'Stop';
-      this.playBtn.classList.add('acive');
-    } else {
+    if (this.isPlaying) {
       this.playBtn.innerText = 'Play';
-      this.playBtn.classList.remove('acive');
+      this.playBtn.classList.remove('active');
+    } else {
+      this.playBtn.innerText = 'Stop';
+      this.playBtn.classList.add('active');
     }
   }
+  // changes the sounds of the instruments based on what is chosen in the dropdowns
   changeSound(e) {
     const selectionName = e.target.name;
     const selectionValue = e.target.value;
@@ -79,6 +82,48 @@ class DrumKit {
       case 'hihat-select':
         this.hihatAudio.src = selectionValue;
         break;
+    }
+  }
+  mute(e) {
+    //pulls the data-track number from the HTML to know which sound we on
+    const muteIndex = e.target.getAttribute('data-track');
+    e.target.classList.toggle('active');
+    if (e.target.classList.contains('active')) {
+      switch (muteIndex) {
+        case '0':
+          this.kickAudio.volume = 0;
+          break;
+        case '1':
+          this.snareAudio.volume = 0;
+          break;
+        case '2':
+          this.hihatAudio.volume = 0;
+          break;
+      }
+    } else {
+      switch (muteIndex) {
+        case '0':
+          this.kickAudio.volume = 1;
+          break;
+        case '1':
+          this.snareAudio.volume = 1;
+          break;
+        case '2':
+          this.hihatAudio.volume = 1;
+          break;
+      }
+    }
+  }
+  changeTempo(e) {
+    const tempoText = document.querySelector('.tempo-number');
+    this.bpm = e.target.value;
+    tempoText.innerText = e.target.value;
+  }
+  updateTempo() {
+    clearInterval(this.isPlaying);
+    this.isPlaying = null;
+    if (this.playBtn.classList.contains('active')) {
+      this.start();
     }
   }
 }
@@ -104,4 +149,19 @@ drumKit.selects.forEach((select) => {
   select.addEventListener('change', function(e) {
     drumKit.changeSound(e);
   });
+});
+
+drumKit.muteBtns.forEach((btn) => {
+  btn.addEventListener('click', function(e) {
+    drumKit.mute(e);
+  });
+});
+
+//"input" takes in all of the changes for the slider, if it were "change" it would only register one change after the sliding stopped
+drumKit.tempoSlider.addEventListener('input', function(e) {
+  drumKit.changeTempo(e);
+});
+
+drumKit.tempoSlider.addEventListener('change', function(e) {
+  drumKit.updateTempo(e);
 });
